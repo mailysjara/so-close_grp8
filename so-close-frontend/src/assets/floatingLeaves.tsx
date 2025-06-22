@@ -1,4 +1,3 @@
-import React from 'react'
 
 export const FloatingLeaves = () => (
   <div className="floating-elements">
