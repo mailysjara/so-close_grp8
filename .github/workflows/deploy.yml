@@ -1,4 +1,4 @@
-name: scp files
+name: Deploy to VM via SSH
 
 on:
   push:
@@ -6,17 +6,37 @@ on:
       - main
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Copy files via SSH
+      - name: Install dependencies
+        run: npm install
+        working-directory: so-close-frontend
+
+      - name: Build project
+        run: npm run build
+        working-directory: so-close-frontend
+
+      - name: Deploy via SCP
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "frontend/*"
-          target: /home/sigl
+          source: "so-close-frontend/dist/*"
+          target: /home/sigl/frontend
+          strip_components: 1
+
+      - name: Reload NGINX
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            sudo systemctl reload nginx
+
