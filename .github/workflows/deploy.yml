@@ -72,7 +72,7 @@ jobs:
             sudo systemctl reload nginx
 
       # START BACKEND
-      - name: Restart backend via SSH
+      - name: Start backend via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOST }}
@@ -80,4 +80,5 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /home/sigl/web-api
-            pm2 restart web-api || pm2 start dist/index.js --name web-api
+            pkill -f "node dist/index.js" || true
+            nohup node dist/index.js > out.log 2>&1 &
