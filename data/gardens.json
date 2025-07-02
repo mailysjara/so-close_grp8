@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "Jardin des Tuileries",
+    "latitude": 48.8638,
+    "longitude": 2.327
+  },
+  {
+    "id": 2,
+    "name": "Jardin du Luxembourg",
+    "latitude": 48.8462,
+    "longitude": 2.3372
+  },
+  {
+    "name": "Ethan",
+    "latitude": 48.76317167876952,
+    "longitude": 2.4097287654876713,
+    "id": 3
+  }
+]

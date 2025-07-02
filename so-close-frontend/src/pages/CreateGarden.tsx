@@ -1,8 +1,7 @@
-import { useState, useContext } from 'react'
+import { useState } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import type { LeafletMouseEvent } from 'leaflet'
-import { GardenContext } from '../context/GardenContext'
 import { useNavigate } from 'react-router-dom'
 import 'leaflet/dist/leaflet.css'
 import './CreateGarden.css'
@@ -31,16 +30,9 @@ const LocationSelector = ({ onSelect }: LocationSelectorProps) => {
 const CreateGarden = () => {
   const [name, setName] = useState<string>('')
   const [position, setPosition] = useState<L.LatLng | null>(null)
-  const context = useContext(GardenContext)
   const navigate = useNavigate()
 
-  if (!context) {
-    throw new Error('GardenContext non défini')
-  }
-
-  const { addGarden } = context
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!position) return alert('Veuillez sélectionner un emplacement sur la carte.')
 
@@ -49,8 +41,24 @@ const CreateGarden = () => {
       latitude: position.lat,
       longitude: position.lng,
     }
-    addGarden(newGarden)
-    navigate('/map')
+
+    try {
+      const res = await fetch('http://localhost:4000/api/gardens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newGarden),
+      })
+
+      if (!res.ok) {
+        throw new Error(`Erreur API: ${res.status}`)
+      }
+
+      // Après succès, redirige vers la carte
+      navigate('/map')
+    } catch (err) {
+      console.error('Erreur lors de la création du jardin:', err)
+      alert('Erreur lors de la création du jardin.')
+    }
   }
 
   return (
