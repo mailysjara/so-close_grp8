@@ -43,17 +43,23 @@ jobs:
           strip_components: 1
 
       # DEPLOY BACKEND DIST + DATA
-      - name: Deploy backend via SCP
+      - name: Deploy backend dist
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: |
-            web-api/dist/*
-            data/*
-          target: /home/sigl/web-api
-          strip_components: 2
+          source: "web-api/dist/**"
+          target: "/home/sigl/web-api"
+
+      - name: Deploy data
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "data/**"
+          target: "/home/sigl/data"
 
       # RELOAD NGINX
       - name: Reload NGINX
