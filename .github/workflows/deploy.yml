@@ -13,15 +13,26 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      # FRONTEND
+      - name: Install frontend dependencies
         run: npm install
         working-directory: so-close-frontend
 
-      - name: Build project
+      - name: Build frontend
         run: npm run build
         working-directory: so-close-frontend
 
-      - name: Deploy via SCP
+      # BACKEND
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: web-api
+
+      - name: Build backend
+        run: npx tsc
+        working-directory: web-api
+
+      # DEPLOY FRONTEND
+      - name: Deploy frontend via SCP
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.HOST }}
@@ -31,6 +42,20 @@ jobs:
           target: /home/sigl/frontend
           strip_components: 1
 
+      # DEPLOY BACKEND DIST + DATA
+      - name: Deploy backend via SCP
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: |
+            web-api/dist/*
+            data/*
+          target: /home/sigl/web-api
+          strip_components: 2
+
+      # RELOAD NGINX
       - name: Reload NGINX
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -40,3 +65,13 @@ jobs:
           script: |
             sudo systemctl reload nginx
 
+      # START BACKEND
+      - name: Restart backend via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/sigl/web-api
+            pm2 restart web-api || pm2 start dist/index.js --name web-api
